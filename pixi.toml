@@ -1,0 +1,135 @@
+# Root Pixi Workspace Configuration
+# AI-ML Pipeline: Pose Analysis + GPU VRAM Optimization
+# Uses PyPI PyTorch wheels for CUDA 12.4 support
+
+[workspace]
+name = "ai-ml-pipeline"
+version = "0.1.0"
+description = "Parallel ML projects: Pose Analysis + GPU VRAM Optimization"
+authors = ["Ollie <buitelaarolivier@gmail.com>"]
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+
+# ============================================================================
+# Base (CPU-capable) dependencies shared by all environments
+# ============================================================================
+
+[dependencies]
+python = "3.10.*"
+
+# --- Computer Vision / Data Science (Conda only) ---
+opencv = "4.10.*"
+numpy = "1.26.*"
+scipy = "1.14.*"
+scikit-learn = "1.5.*"
+pandas = "2.2.*"
+matplotlib = "3.10.*"
+
+# --- Time-Series & Anomaly Detection ---
+dtaidistance = "2.3.*"
+tslearn = "0.6.*"
+
+# --- Monitoring / System ---
+psutil = "6.1.*"
+pip = ">=25.3,<26"
+
+# ============================================================================
+# PyPI dependencies (PyTorch + related packages)
+# ============================================================================
+
+[pypi-dependencies]
+# PyPI-only packages (PyTorch defined per-feature below)
+mediapipe = ">=0.10,<0.11"
+kafka-python = ">=2.0,<2.1"
+psycopg2-binary = ">=2.9,<3.0"
+wandb = ">=0.18,<0.19"
+ultralytics = ">=8.4,<8.5"
+prometheus-client = ">=0.21,<0.25"
+nvidia-ml-py = ">=12.535,<13"
+
+# ============================================================================
+# Local workspace packages (editable installs)
+# ============================================================================
+
+[pypi-dependencies.pose-analyzer]
+path = "projects/pose_analyzer"
+editable = true
+
+[pypi-dependencies.gpu-optimizer]
+path = "projects/gpu_optimizer"
+editable = true
+
+# ============================================================================
+# Development Feature
+# ============================================================================
+
+[feature.dev.dependencies]
+jupyter = "1.0.*"
+jupyterlab = "4.2.*"
+pytest = "8.2.*"
+pytest-cov = "5.*"
+pytest-asyncio = "0.24.*"
+ruff = "0.8.*"
+pyright = "1.1.*"
+tensorboard = "2.18.*"
+
+# ============================================================================
+# CPU Feature - CPU-only PyTorch
+# ============================================================================
+
+[feature.cpu-torch]
+[feature.cpu-torch.pypi-dependencies]
+torch = { version = "==2.7.1", index = "https://download.pytorch.org/whl/cpu" }
+torchvision = { version = "==0.22.1", index = "https://download.pytorch.org/whl/cpu" }
+torchaudio = { version = "==2.7.1", index = "https://download.pytorch.org/whl/cpu" }
+
+# ============================================================================
+# CUDA Feature - CUDA 12.4 PyTorch wheels
+# ============================================================================
+
+[feature.cuda]
+platforms = ["linux-64"]
+
+[feature.cuda.system-requirements]
+cuda = "12.0"
+
+[feature.cuda.pypi-dependencies]
+torch = { version = "==2.7.1", index = "https://download.pytorch.org/whl/cu128" }
+torchvision = { version = "==0.22.1", index = "https://download.pytorch.org/whl/cu128" }
+torchaudio = { version = "==2.7.1", index = "https://download.pytorch.org/whl/cu128" }
+
+# ============================================================================
+# Environments
+#   - cpu: base + dev (CPU-only PyTorch from PyPI)
+#   - cuda: base + dev + cuda (GPU PyTorch CUDA 12.4 from PyPI)
+# ============================================================================
+
+[environments]
+cpu = { features = ["dev", "cpu-torch"] }
+cuda = { features = ["dev", "cuda"] }
+
+# ============================================================================
+# Tasks
+# ============================================================================
+
+[tasks]
+# Code quality
+lint = "ruff check projects/ && pyright projects/"
+format = "ruff format projects/ && ruff check projects/ --fix"
+
+# Testing & validation
+test = "pytest projects/ -v --cov=projects"
+validate-env = "python scripts/validate_env.py"
+detect-gpu = "python scripts/detect_gpu.py"
+
+# Service APIs
+pose-api = { cmd = "python -m pose_analyzer.api.main --port 8001", cwd = "projects/pose_analyzer" }
+vram-api = { cmd = "python -m gpu_optimizer.api.main --port 8002", cwd = "projects/gpu_optimizer" }
+
+# Setup & maintenance
+download-models = "python scripts/download_models.py"
+sync-projects = "bash scripts/sync_projects.sh"
+
+# Clean environment
+clean = "rm -rf .pixi/envs && rm pixi.lock"
+fresh-install = "pixi install --force-reinstall"

@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pose-analyzer"
+version = "0.1.0"
+description = "Real-time fitness form detector with multi-stream pose estimation"
+requires-python = ">=3.10"
+authors = [
+    { name = "Your Name", email = "email@example.com" },
+]
+
+dependencies = [
+    "mediapipe>=0.10,<0.11",
+    "ultralytics>=8.4,<8.5",
+    "opencv-python>=4.10.0",
+    "numpy>=1.26,<1.27",
+    "fastapi>=0.115.0",
+    "uvicorn>=0.32.0",
+    "websockets>=14.2",
+    "pydantic>=2.8.0",
+]
+
+[tool.setuptools]
+package-dir = { "" = "src" }

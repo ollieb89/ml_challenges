@@ -1,0 +1,29 @@
+machines:
+  desktop-5070ti:
+    name: "Main Dev Machine"
+    gpu: "RTX 5070 Ti"
+    vram_gb: 12
+    cuda_sm: "90"
+    primary: true
+    use_for: ["development", "inference", "testing"]
+    environment: cuda
+
+  laptop-4070ti:
+    name: "Training Laptop"
+    gpu: "RTX 4070 Ti Mobile"
+    vram_gb: 12
+    cuda_sm: "89"
+    primary: false
+    use_for: ["training", "optimization"]
+    environment: cuda
+    power_limit: 90  # TDP limit for laptop
+
+  pc-3070ti:
+    name: "Secondary PC"
+    gpu: "RTX 3070 Ti"
+    vram_gb: 8
+    cuda_sm: "86"
+    primary: false
+    use_for: ["backup", "inference", "testing"]
+    environment: cuda
+    batch_size_limit: 32  # More constrained
