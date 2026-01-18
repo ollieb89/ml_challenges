@@ -10,19 +10,27 @@ import torch
 from fastapi import FastAPI, HTTPException
 
 from gpu_optimizer.memory_profiler import MemoryProfiler
+from gpu_optimizer.memory_tracer import MemoryTracer
 from .schemas import (
     GPUInfo,
     MemoryProfileRequest,
     MemoryProfileResponse,
     OptimizationRequest,
     OptimizationResponse,
-    HealthResponse
+    HealthResponse,
+    MemoryTraceRequest,
+    MemoryTraceResponse,
+    FlameGraphExportRequest,
+    FlameGraphExportResponse,
+    LayerMemoryStats as LayerMemoryStatsSchema
 )
 
 
 # Global state for GPU monitoring
 nvidia_ml = None
 memory_profiler = None
+memory_tracer = None
+active_traces = {}  # Store active traces by ID
 
 
 async def get_gpu_info() -> List[GPUInfo]:
@@ -219,21 +227,175 @@ def create_gpu_routes(app: FastAPI) -> None:
             cuda_available=torch.cuda.is_available(),
             uptime_seconds=time.time()
         )
+    
+    
+    @app.post("/api/trace/memory", response_model=MemoryTraceResponse)
+    async def trace_memory_usage(request: MemoryTraceRequest):
+        """Trace memory usage with layer-level attribution and fragmentation analysis."""
+        if not memory_tracer:
+            raise HTTPException(status_code=503, detail="Memory tracer not available")
+        
+        if not torch.cuda.is_available():
+            raise HTTPException(status_code=503, detail="CUDA not available")
+        
+        try:
+            # Create input tensor
+            input_tensor = torch.randn(*request.input_shape)
+            
+            # Create a dummy model for tracing
+            # In production, this would load the actual model
+            dummy_model = torch.nn.Sequential(
+                torch.nn.Linear(np.prod(request.input_shape[1:]), 512),
+                torch.nn.ReLU(),
+                torch.nn.Linear(512, 256),
+                torch.nn.ReLU(),
+                torch.nn.Linear(256, 10)
+            )
+            
+            dummy_model = dummy_model.cuda()
+            input_tensor = input_tensor.cuda()
+            
+            # Create a new tracer for this request
+            tracer = MemoryTracer(
+                max_events=request.max_events,
+                enable_fragmentation_tracking=request.enable_fragmentation
+            )
+            
+            # Trace execution
+            start_time = time.perf_counter()
+            with tracer.trace(dummy_model):
+                _ = dummy_model(input_tensor)
+            torch.cuda.synchronize()
+            end_time = time.perf_counter()
+            
+            tracing_time_ms = (end_time - start_time) * 1000
+            
+            # Get statistics
+            layer_stats = tracer.get_layer_stats()
+            
+            # Calculate summary statistics
+            if tracer.events:
+                peak_allocated_mb = max(e.allocated_bytes for e in tracer.events) / (1024**2)
+                peak_reserved_mb = max(e.reserved_bytes for e in tracer.events) / (1024**2)
+                avg_fragmentation = sum(e.fragmentation_ratio for e in tracer.events) / len(tracer.events)
+            else:
+                peak_allocated_mb = 0.0
+                peak_reserved_mb = 0.0
+                avg_fragmentation = 0.0
+            
+            # Convert layer stats to schema format
+            layer_stats_dict = {}
+            for name, stats in layer_stats.items():
+                layer_stats_dict[name] = LayerMemoryStatsSchema(
+                    layer_name=stats.layer_name,
+                    peak_allocated=stats.peak_allocated,
+                    peak_reserved=stats.peak_reserved,
+                    total_allocations=stats.total_allocations,
+                    total_deallocations=stats.total_deallocations,
+                    avg_fragmentation=stats.avg_fragmentation,
+                    duration_ms=stats.duration_ms
+                )
+            
+            # Store tracer for potential export
+            trace_id = f"trace_{int(time.time() * 1000)}"
+            active_traces[trace_id] = tracer
+            
+            return MemoryTraceResponse(
+                model_name=request.model_name,
+                total_events=len(tracer.events),
+                total_layers=len(layer_stats),
+                peak_allocated_mb=peak_allocated_mb,
+                peak_reserved_mb=peak_reserved_mb,
+                avg_fragmentation=avg_fragmentation,
+                tracing_time_ms=tracing_time_ms,
+                layer_stats=layer_stats_dict
+            )
+            
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Memory tracing failed: {str(e)}")
+    
+    
+    @app.post("/api/trace/export", response_model=FlameGraphExportResponse)
+    async def export_flame_graph(request: FlameGraphExportRequest):
+        """Export memory trace as flame graph or timeline."""
+        if request.trace_id not in active_traces:
+            raise HTTPException(status_code=404, detail=f"Trace {request.trace_id} not found")
+        
+        try:
+            tracer = active_traces[request.trace_id]
+            
+            # Create output directory
+            import tempfile
+            from pathlib import Path
+            
+            output_dir = Path(tempfile.gettempdir()) / "gpu_optimizer_traces"
+            output_dir.mkdir(exist_ok=True)
+            
+            # Export based on format
+            if request.format == "speedscope":
+                output_file = output_dir / f"{request.trace_id}_flamegraph.json"
+                tracer.export_flame_graph(str(output_file))
+            elif request.format == "timeline":
+                output_file = output_dir / f"{request.trace_id}_timeline.json"
+                tracer.export_timeline(str(output_file))
+            else:
+                raise HTTPException(status_code=400, detail=f"Unsupported format: {request.format}")
+            
+            # Get file size
+            file_size = output_file.stat().st_size
+            
+            # In production, this would be a proper download URL
+            download_url = f"/api/trace/download/{output_file.name}"
+            
+            return FlameGraphExportResponse(
+                trace_id=request.trace_id,
+                format=request.format,
+                download_url=download_url,
+                file_size_bytes=file_size
+            )
+            
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}")
+    
+    
+    @app.get("/api/trace/list")
+    async def list_active_traces():
+        """List all active traces."""
+        return {
+            "active_traces": list(active_traces.keys()),
+            "count": len(active_traces)
+        }
+    
+    
+    @app.delete("/api/trace/{trace_id}")
+    async def delete_trace(trace_id: str):
+        """Delete a trace from memory."""
+        if trace_id not in active_traces:
+            raise HTTPException(status_code=404, detail=f"Trace {trace_id} not found")
+        
+        del active_traces[trace_id]
+        
+        return {
+            "message": f"Trace {trace_id} deleted successfully",
+            "remaining_traces": len(active_traces)
+        }
 
 
 def initialize_gpu_monitoring() -> bool:
     """Initialize GPU monitoring components."""
-    global nvidia_ml, memory_profiler
+    global nvidia_ml, memory_profiler, memory_tracer
     
     try:
         nvidia_ml = ml.nvmlInit()
         memory_profiler = MemoryProfiler()
+        memory_tracer = MemoryTracer()
         print("GPU monitoring initialized successfully")
         return True
     except Exception as e:
         print(f"Failed to initialize GPU monitoring: {e}")
         nvidia_ml = None
         memory_profiler = None
+        memory_tracer = None
         return False
 
 

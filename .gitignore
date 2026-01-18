@@ -256,6 +256,10 @@ Thumbs.db
 # Project specific
 logs/
 data/cache/
+data/results/
+data/pose_references/videos/
+data/pose_references/frames/
+data/test_videos/
 # Keep existing models but ignore new ones
 data/models/*.pt
 data/models/*.pth

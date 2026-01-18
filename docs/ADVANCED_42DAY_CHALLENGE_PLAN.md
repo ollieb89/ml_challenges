@@ -27,9 +27,9 @@
 
 ### Morning (2-3 hours)
 **Setup pixi workspace on RTX 5070 Ti**
-- [ ] Initialize pixi workspace with CUDA 12.8 lock
+- [x] Initialize pixi workspace with CUDA 12.8 lock
 - [ ] Validate on all 3 systems (RTX 5070 Ti, 4070 Ti, 3070 Ti)
-- [ ] Baseline GPU memory profiling script:
+- [x] Baseline GPU memory profiling script:
   ```python
   # Measure memory per layer for:
   - ResNet50 (inference)
@@ -40,7 +40,7 @@
 
 ### Afternoon (2-3 hours)
 **Challenge: Implement Custom Memory Tracer**
-- [ ] Create `gpu_optimizer/src/gpu_optimizer/memory_tracer.py`:
+- [x] Create `gpu_optimizer/src/gpu_optimizer/memory_tracer.py`:
   - Hook into PyTorch allocator
   - Track allocations/deallocations in real-time
   - Measure peak memory per layer
@@ -68,7 +68,7 @@ baseline_memory_profiles.json ✅
 
 ### Morning (2 hours)
 **Challenge: Compare MediaPipe vs YOLOv11 on YOUR DATA**
-- [ ] Implement both detectors:
+- [x] Implement both detectors:
   ```python
   # pose_analyzer/src/pose_analyzer/pose_detector.py
   class MediaPipePoseDetector:
@@ -81,13 +81,13 @@ baseline_memory_profiles.json ✅
       - Multi-person support
       - Measure inference latency + VRAM usage
   ```
-- [ ] **Challenge:** Benchmark on 1080p video:
+- [x] **Challenge:** Benchmark on 1080p video:
   - Latency per frame
   - Peak VRAM
   - FPS at 1080p
   - Multi-person accuracy (if 2+ people)
-- [ ] **Decision:** Choose best for your 4-stream goal
-- [ ] Create comparison report: `reports/detector_comparison.md`
+- [x] **Decision:** Choose best for your 4-stream goal
+- [x] Create comparison report: `reports/detector_comparison.md`
 
 ### Afternoon (2-3 hours)
 **Challenge: Implement Multi-Stream Video Processor**

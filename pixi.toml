@@ -32,6 +32,7 @@ tslearn = "0.6.*"
 # --- Monitoring / System ---
 psutil = "6.1.*"
 pip = ">=25.3,<26"
+yt-dlp = ">=2025.10.14,<2026"
 
 # ============================================================================
 # PyPI dependencies (PyTorch + related packages)
@@ -43,9 +44,15 @@ mediapipe = ">=0.10,<0.11"
 kafka-python = ">=2.0,<2.1"
 psycopg2-binary = ">=2.9,<3.0"
 wandb = ">=0.18,<0.19"
+tensorrt-cu12 = ">=10.2,<10.3"
+tensorrt-cu12-bindings = ">=10.2,<10.3"
+tensorrt-cu12-libs = ">=10.2,<10.3"
 ultralytics = ">=8.4,<8.5"
 prometheus-client = ">=0.21,<0.25"
 nvidia-ml-py = ">=12.535,<13"
+onnx = ">=1.12,<2.0"
+onnxslim = ">=0.1.71,<0.2"
+onnxruntime-gpu = ">=1.18,<1.19"
 
 # ============================================================================
 # Local workspace packages (editable installs)

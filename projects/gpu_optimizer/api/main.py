@@ -53,11 +53,15 @@ def create_gpu_optimizer_app() -> FastAPI:
         return {
             "name": "GPU Optimizer API",
             "version": "0.1.0",
-            "description": "GPU VRAM optimization suite with tensor management",
+            "description": "GPU VRAM optimization suite with tensor management and memory tracing",
             "endpoints": {
                 "gpu_list": "/api/gpus",
                 "gpu_details": "/api/gpus/{gpu_id}",
                 "memory_profiling": "/api/profile/memory",
+                "memory_tracing": "/api/trace/memory",
+                "trace_export": "/api/trace/export",
+                "trace_list": "/api/trace/list",
+                "trace_delete": "/api/trace/{trace_id}",
                 "optimization": "/api/optimize",
                 "health": "/api/health",
                 "documentation": "/api/docs"
@@ -73,6 +77,9 @@ def create_gpu_optimizer_app() -> FastAPI:
             "features": [
                 "GPU monitoring and profiling",
                 "Memory usage analysis",
+                "Real-time memory tracing with layer attribution",
+                "Fragmentation analysis",
+                "Flame graph export (speedscope format)",
                 "Optimization recommendations",
                 "Real-time GPU metrics",
                 "Tensor memory tracking"
@@ -80,6 +87,9 @@ def create_gpu_optimizer_app() -> FastAPI:
             "supported_operations": [
                 "GPU information retrieval",
                 "Memory profiling",
+                "Memory tracing with <1% overhead",
+                "Per-layer memory statistics",
+                "Flame graph visualization export",
                 "Performance optimization",
                 "Resource monitoring"
             ]
