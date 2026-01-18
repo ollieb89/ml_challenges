@@ -28,7 +28,7 @@
 ### Morning (2-3 hours)
 **Setup pixi workspace on RTX 5070 Ti**
 - [x] Initialize pixi workspace with CUDA 12.8 lock
-- [ ] Validate on all 3 systems (RTX 5070 Ti, 4070 Ti, 3070 Ti)
+- [x] Validate on all 3 systems (RTX 5070 Ti, 4070 Ti, 3070 Ti)
 - [x] Baseline GPU memory profiling script:
   ```python
   # Measure memory per layer for:
@@ -280,11 +280,26 @@ reports/optimization_effectiveness.md ✅
 
 ### Day 6 (Full Day)
 **Challenge: Test Everything on RTX 3070 Ti (8GB - Most Constrained)**
-- [ ] Sync code to RTX 3070 Ti machine
-- [ ] Pose detection: 1-stream baseline (should work)
-- [ ] GPU optimizer: Profile on 8GB VRAM
-- [ ] Identify what breaks on 8GB (likely: Llama-7B full precision)
-- [ ] Document constraints per system
+- [x] Sync code to RTX 3070 Ti machine
+- [x] Pose detection: 1-stream baseline (Verified: 53/53 tests passed)
+- [x] GPU optimizer: Profile on 8GB VRAM
+  - Created `scripts/gpu_constraint_profiler.py` - comprehensive profiler for all models
+  - Validated on RTX 5070 Ti (see `reports/system_constraints/`)
+  - ✅ **COMPLETED 2026-01-19**: Profiled on RTX 3070 Ti (7.66GB actual VRAM)
+  - Command: `pixi run -e cuda gpu-profiler`
+- [x] Identify what breaks on 8GB (likely: Llama-7B full precision)
+  - ❌ Llama-7B FP16: Requires ~16GB (FAILS)
+  - ❌ Llama-7B INT8: Requires ~8.5GB (FAILS - just over limit)
+  - ⚠️ Llama-7B INT4: ~5GB estimated, max batch=8, marginal/unstable
+  - ✅ Vision models: All work well up to batch 256 (ResNet50, ViT-Base)
+  - ✅ YOLO Pose v11n: Max batch 128 (3019MB)
+- [x] Document constraints per system
+  - See: `reports/system_constraints/nvidia_geforce_rtx_3070_ti_7gb_constraints.md`
+  - See: `reports/system_constraints/nvidia_geforce_rtx_3070_ti_7gb_constraints.json`
+  - Updated: `config/machines.yml` with full constraint profiles
+- [x] **BONUS**: Created `scripts/diagnose_rdrnd.py` for RDRND hardware RNG warning investigation
+  - Warning detected: "CPU random generator seem to be failing, disabling hardware random number generation"
+  - Diagnostic script checks CPU flags, kernel entropy, microcode, and provides recommendations
 
 ### Day 7 (Full Day)
 **Challenge: 4-Stream Concurrent Pose Detection**
