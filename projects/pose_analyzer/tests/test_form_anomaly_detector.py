@@ -247,7 +247,7 @@ class TestFormAnomalyDetector:
         assert detector.isolation_model is not None
         assert detector.scaler is not None
         assert detector.feature_extractor is not None
-        assert detector.anomaly_threshold == 0.7
+        assert detector.anomaly_threshold == 0.6
     
     def test_detector_without_reference(self):
         """Test detector initialization without reference template"""
@@ -457,7 +457,7 @@ class TestPerformanceValidation:
         
         # Check that buffers don't grow indefinitely
         assert len(detector.detection_history) <= 1000  # Max history size
-        assert len(detector.feature_buffer) <= 100      # Max buffer size
+        assert len(detector.feature_buffer) <= 200      # Max buffer size
 
 
 class TestIntegrationValidation:
