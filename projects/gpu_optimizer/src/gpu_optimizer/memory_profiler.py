@@ -1,5 +1,5 @@
 import torch
-import nvidia_ml_py as ml
+import pynvml as ml
 from typing import Dict, List, Tuple, Any, Callable
 import pandas as pd
 from collections import defaultdict

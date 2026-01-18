@@ -16,6 +16,7 @@ import numpy as np
 import torch
 
 from .pose_detector import DetectionResult, MediaPipePoseDetector, YOLOPosev11Detector
+from .biomechanics import JointAngleCalculator
 
 
 @dataclass
@@ -42,6 +43,9 @@ class MultiStreamProcessor:
         gpu_mem_drop_threshold: float = 0.9,
         frame_stride: int = 1,
         engine_path: Optional[str | Path] = None,
+        enable_joint_angles: bool = True,
+        confidence_threshold: float = 0.5,
+        smoothing_window: int = 3,
     ) -> None:
         self.video_paths = [Path(p) for p in video_paths]
         self.max_streams = max_streams
@@ -53,6 +57,14 @@ class MultiStreamProcessor:
         self.detector = self._create_detector(detector, engine_path=engine_path)
         self.stats: Dict[int, StreamStats] = {}
         self._stop_event = threading.Event()
+        
+        # Joint angle calculation
+        self.enable_joint_angles = enable_joint_angles
+        if self.enable_joint_angles:
+            self.angle_calculator = JointAngleCalculator(
+                confidence_threshold=confidence_threshold,
+                smoothing_window=smoothing_window
+            )
 
     @staticmethod
     def _create_detector(name: str, *, engine_path: Optional[str | Path]):
@@ -71,9 +83,34 @@ class MultiStreamProcessor:
         total = torch.cuda.get_device_properties(0).total_memory
         return used / total > self.gpu_mem_drop_threshold
 
-    def _process_frame(self, stream_id: int, frame: np.ndarray) -> None:
+    def _process_frame(self, stream_id: int, frame: np.ndarray) -> DetectionResult:
         start = perf_counter()
         result: DetectionResult = self.detector.detect(frame)
+        
+        # Calculate joint angles if enabled and keypoints are detected
+        if self.enable_joint_angles and result.keypoints:
+            try:
+                # Use first detected person for angle calculation
+                keypoints = result.keypoints[0]
+                
+                # Extract confidence scores if available from detector
+                confidences = None
+                if hasattr(result.raw_output, 'keypoints') and hasattr(result.raw_output.keypoints, 'conf'):
+                    # YOLO confidence scores
+                    confidences = result.raw_output.keypoints.conf[0].cpu().numpy()
+                elif hasattr(result.raw_output, 'pose_landmarks') and result.raw_output.pose_landmarks:
+                    # MediaPipe visibility scores
+                    confidences = np.array([lm.visibility for lm in result.raw_output.pose_landmarks[0]])
+                
+                # Calculate angles
+                joint_angles = self.angle_calculator.calculate_angles(keypoints, confidences)
+                result.joint_angles = joint_angles
+                
+            except Exception as e:
+                # Log error but don't fail the processing
+                print(f"Warning: Joint angle calculation failed for stream {stream_id}: {e}")
+                result.joint_angles = None
+        
         latency_ms = (perf_counter() - start) * 1000
         stream_stats = self.stats.setdefault(stream_id, StreamStats())
         stream_stats.frames_processed += 1
@@ -81,6 +118,8 @@ class MultiStreamProcessor:
         stream_stats.peak_latency_ms = max(stream_stats.peak_latency_ms, latency_ms)
         if latency_ms > self.max_latency_ms:
             stream_stats.dropped_frames += 1
+            
+        return result
 
     def run(self) -> Dict[int, StreamStats]:
         stream_threads: List[threading.Thread] = []
@@ -156,6 +195,10 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--gpu-threshold", type=float, default=0.9, help="Drop frames when GPU memory exceeds this fraction")
     parser.add_argument("--max-latency-ms", type=float, default=100.0, help="Latency budget triggering drop accounting")
     parser.add_argument("--stats-output", type=Path, default=None, help="Optional JSON stats output path")
+    parser.add_argument("--enable-joint-angles", action="store_true", default=True, help="Enable joint angle calculations")
+    parser.add_argument("--disable-joint-angles", dest="enable_joint_angles", action="store_false", help="Disable joint angle calculations")
+    parser.add_argument("--confidence-threshold", type=float, default=0.5, help="Confidence threshold for joint angle calculations")
+    parser.add_argument("--smoothing-window", type=int, default=3, help="Temporal smoothing window for joint angles")
     return parser.parse_args()
 
 
@@ -171,6 +214,9 @@ def main() -> None:
         gpu_mem_drop_threshold=args.gpu_threshold,
         frame_stride=args.frame_stride,
         engine_path=args.engine_path,
+        enable_joint_angles=args.enable_joint_angles,
+        confidence_threshold=args.confidence_threshold,
+        smoothing_window=args.smoothing_window,
     )
     stats = processor.run()
     stats_dict = {stream_id: asdict(stat) for stream_id, stat in stats.items()}

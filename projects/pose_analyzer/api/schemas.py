@@ -4,6 +4,28 @@ from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field
 
 
+class JointAngle(BaseModel):
+    """Individual joint angle measurement."""
+    
+    angle_degrees: Optional[float] = Field(None, description="Joint angle in degrees")
+    confidence: Optional[float] = Field(None, description="Confidence score for angle measurement")
+
+
+class JointAngles(BaseModel):
+    """Complete set of joint angles for a person."""
+    
+    shoulder_left: Optional[float] = Field(None, description="Left shoulder angle in degrees")
+    shoulder_right: Optional[float] = Field(None, description="Right shoulder angle in degrees")
+    elbow_left: Optional[float] = Field(None, description="Left elbow angle in degrees")
+    elbow_right: Optional[float] = Field(None, description="Right elbow angle in degrees")
+    hip_left: Optional[float] = Field(None, description="Left hip angle in degrees")
+    hip_right: Optional[float] = Field(None, description="Right hip angle in degrees")
+    knee_left: Optional[float] = Field(None, description="Left knee angle in degrees")
+    knee_right: Optional[float] = Field(None, description="Right knee angle in degrees")
+    ankle_left: Optional[float] = Field(None, description="Left ankle angle in degrees")
+    ankle_right: Optional[float] = Field(None, description="Right ankle angle in degrees")
+
+
 class PoseLandmark(BaseModel):
     """Individual pose landmark point."""
     
@@ -19,6 +41,7 @@ class PoseLandmarks(BaseModel):
     landmarks: List[PoseLandmark] = Field(..., description="List of pose landmarks")
     confidence: float = Field(..., description="Overall pose detection confidence")
     pose_id: Optional[int] = Field(None, description="Unique identifier for this pose")
+    joint_angles: Optional[JointAngles] = Field(None, description="Calculated joint angles for this pose")
 
 
 class PoseDetectionRequest(BaseModel):
@@ -30,6 +53,9 @@ class PoseDetectionRequest(BaseModel):
     min_tracking_confidence: float = Field(default=0.5, description="Minimum tracking confidence")
     max_poses: int = Field(default=2, description="Maximum number of poses to detect")
     model_complexity: int = Field(default=1, description="Model complexity: 0, 1, or 2")
+    enable_joint_angles: bool = Field(default=False, description="Enable joint angle calculations")
+    angle_confidence_threshold: float = Field(default=0.5, description="Confidence threshold for joint angles")
+    angle_smoothing_window: int = Field(default=3, description="Temporal smoothing window for joint angles")
 
 
 class PoseDetectionResponse(BaseModel):
@@ -122,6 +148,9 @@ class RealTimeConfig(BaseModel):
     exercise_type: Optional[str] = Field(None, description="Exercise type for form analysis")
     smoothing_enabled: bool = Field(default=True, description="Enable pose smoothing")
     buffer_size: int = Field(default=10, description="Frame buffer size for smoothing")
+    enable_joint_angles: bool = Field(default=False, description="Enable joint angle calculations")
+    angle_confidence_threshold: float = Field(default=0.5, description="Confidence threshold for joint angles")
+    angle_smoothing_window: int = Field(default=3, description="Temporal smoothing window for joint angles")
 
 
 class RealTimePoseUpdate(BaseModel):

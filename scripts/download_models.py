@@ -25,13 +25,15 @@ def setup_models():
     
     print("📥 Downloading pose estimation models...")
 
-    # Move any previously downloaded weights from repo root into the cache dir.
-    for f in Path.cwd().glob("yolo11*-pose.pt"):
-        dest = model_dir / f.name
-        if dest.exists():
-            f.unlink()
-        else:
-            shutil.move(str(f), str(dest))
+    # Move any previously downloaded/exported models from repo root into the cache dir.
+    extensions = ["*.pt", "*.onnx", "*.engine"]
+    for ext in extensions:
+        for f in Path.cwd().glob(f"yolo11*-pose{ext.replace('*','')}"):
+            dest = model_dir / f.name
+            if dest.exists() and dest != f:
+                f.unlink()
+            elif not dest.exists():
+                shutil.move(str(f), str(dest))
     
     # YOLOv11 variants
     with _pushd(model_dir):

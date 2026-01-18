@@ -14,6 +14,8 @@ from mediapipe.tasks import python as task_python
 from mediapipe.tasks.python import vision
 from ultralytics import YOLO
 
+from .biomechanics import JointAngles
+
 BaseOptions = task_python.BaseOptions
 PoseLandmarker = vision.PoseLandmarker
 PoseLandmarkerOptions = vision.PoseLandmarkerOptions
@@ -42,6 +44,7 @@ class DetectionResult:
     keypoints: List[np.ndarray]
     metrics: DetectionMetrics
     raw_output: Any
+    joint_angles: Optional[JointAngles] = None
 
 
 class _VRAMTracker:
@@ -148,7 +151,16 @@ class YOLOPosev11Detector:
         self.device = device or ("cuda:0" if torch.cuda.is_available() else "cpu")
         self.confidence = confidence
         self.iou = iou
-        weights = engine_path or f"yolo11{model_variant}-pose.pt"
+        
+        # Resolve weights path
+        if engine_path:
+            weights = Path(engine_path)
+        else:
+            weights = Path(__file__).resolve().parents[4] / "data" / "models" / f"yolo11{model_variant}-pose.pt"
+            # Fallback to current directory for backward compatibility
+            if not weights.exists():
+                weights = Path(f"yolo11{model_variant}-pose.pt")
+                
         self.model = YOLO(str(weights), task="pose")
         self.is_tensorrt = str(weights).endswith(".engine")
         if self.is_tensorrt:
