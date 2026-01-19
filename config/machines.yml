@@ -34,4 +34,4 @@ machines:
     # SSH Configuration
     ssh_host: "192.168.1.211"  # UPDATE THIS
     ssh_user: "ollie"        # UPDATE THIS
-    remote_root: "~/ai-ml-pipeline"
+    remote_root: "~/Tools/ai-ml-pipeline"

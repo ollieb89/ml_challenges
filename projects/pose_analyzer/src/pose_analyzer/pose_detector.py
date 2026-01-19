@@ -136,21 +136,32 @@ class MediaPipePoseDetector:
 
 
 class YOLOPosev11Detector:
-    """YOLOv11 pose detector with latency and VRAM measurements."""
+    """YOLOv11 pose detector with latency and VRAM measurements.
+    
+    Supports FP16 (half precision) mode for faster inference on GPUs
+    with tensor cores. Use a smaller imgsz (e.g., 640) for faster
+    inference when TensorRT is not available.
+    """
 
     def __init__(
         self,
         model_variant: str = "n",
         *,
         device: Optional[str] = None,
-        imgsz: int = 1080,
+        imgsz: int = 640,  # Reduced from 1080 for faster inference
         confidence: float = 0.5,
         iou: float = 0.45,
         engine_path: Optional[str | Path] = None,
+        half: bool = True,  # Enable FP16 by default on CUDA
+        use_compile: bool = False,
     ) -> None:
         self.device = device or ("cuda:0" if torch.cuda.is_available() else "cpu")
         self.confidence = confidence
         self.iou = iou
+        self.use_compile = use_compile
+        
+        # FP16 only on CUDA
+        self.half = half and torch.cuda.is_available() and "cuda" in self.device
         
         # Resolve weights path
         if engine_path:
@@ -169,6 +180,18 @@ class YOLOPosev11Detector:
         else:
             self.imgsz = imgsz
             self.model.to(self.device)
+            # Apply torch.compile optimization (PyTorch 2.0+)
+            if self.use_compile and not self.is_tensorrt and hasattr(torch, "compile"):
+                try:
+                    # Optimize the inner nn.Module
+                    # use reduce-overhead for low latency, but it requires static shapes usually.
+                    # Given adaptive batching, shapes might vary. Using dynamic=True or default mode is safer.
+                    self.model.model = torch.compile(self.model.model, dynamic=True)
+                except Exception as e:
+                    print(f"Warning: torch.compile failed, falling back to eager mode. Error: {e}")
+            # Convert model to FP16 for faster inference
+            if self.half:
+                self.model.model.half()
             self.runtime_device = self.device
 
     @staticmethod
@@ -187,6 +210,7 @@ class YOLOPosev11Detector:
                 conf=self.confidence,
                 iou=self.iou,
                 device=self.runtime_device,
+                half=self.half,
                 verbose=False,
             )
             if torch.cuda.is_available():

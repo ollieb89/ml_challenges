@@ -531,9 +531,9 @@ class FormAnomalyDetector:
         
         # Determine Anomaly Status
         # Threshold 0.55 provides safety margin above Good Max (~0.48)
-        result.is_anomaly = final_score > 0.55
+        result.is_anomaly = bool(final_score > 0.55)
         
-        return result
+
         
         # Calculate processing time
         processing_time = (time.perf_counter() - start_time) * 1000

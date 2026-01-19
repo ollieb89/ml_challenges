@@ -49,7 +49,7 @@ class ValidationResults:
 
 
 @dataclass
-class TestConfiguration:
+class ValidationConfiguration:
     """Configuration for validation tests"""
     tolerance_degrees: float = 5.0
     noise_levels: List[float] = field(default_factory=lambda: [0.5, 1.0, 1.5])
@@ -181,14 +181,14 @@ class ValidationHarness:
     Systematic validation test harness for biomechanics analysis
     """
     
-    def __init__(self, config: Optional[TestConfiguration] = None):
+    def __init__(self, config: Optional[ValidationConfiguration] = None):
         """
         Initialize validation harness
         
         Args:
-            config: Test configuration, defaults to standard settings
+            config: Validation configuration, defaults to standard settings
         """
-        self.config = config or TestConfiguration()
+        self.config = config or ValidationConfiguration()
         self.pose_generator = SyntheticPoseGenerator()
         self.angle_calculator = JointAngleCalculator()
         self.error_analyzer = ErrorAnalyzer(self.config.tolerance_degrees)
@@ -464,7 +464,7 @@ class ValidationReporter:
 
 def create_validation_harness() -> ValidationHarness:
     """Factory function to create optimized validation harness"""
-    config = TestConfiguration(
+    config = ValidationConfiguration(
         tolerance_degrees=5.0,
         noise_levels=[0.5, 1.0, 1.5],
         num_squats=50,

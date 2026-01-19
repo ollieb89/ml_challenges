@@ -25,7 +25,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from pose_analyzer.biomechanics import JointAngles, JointAngleCalculator
 from pose_analyzer.synthetic_poses import SyntheticPoseGenerator, SquatType, create_pose_generator
-from pose_analyzer.validation_framework import ValidationHarness, TestConfiguration, create_validation_harness
+from pose_analyzer.validation_framework import ValidationHarness, ValidationConfiguration, create_validation_harness
 
 
 class TestJointAngleCalculator:

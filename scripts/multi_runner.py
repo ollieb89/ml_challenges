@@ -89,8 +89,8 @@ def run_remote(machine: str, conf: Dict[str, Any], command: str):
     remote_root = conf.get("remote_root", "~/ai-ml-pipeline")
     ssh_cmd_list = build_ssh_cmd(conf)
     
-    # Wrap command to run in remote root
-    full_remote_cmd = f"cd {remote_root} && {command}"
+    # Wrap command to run in remote root with pixi in path
+    full_remote_cmd = f"export PATH=$HOME/.pixi/bin:$PATH && cd {remote_root} && {command}"
     ssh_cmd_list.append(full_remote_cmd)
     
     try:

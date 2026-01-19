@@ -109,13 +109,15 @@ class MemoryTracer:
         Returns:
             (allocated_bytes, reserved_bytes, fragmentation_ratio)
         """
-        allocated = torch.cuda.memory_allocated(self.device)
-        reserved = torch.cuda.memory_reserved(self.device)
+        stats = torch.cuda.memory_stats(self.device)
+        allocated = stats.get("allocated_bytes.all.current", 0)
+        reserved = stats.get("reserved_bytes.all.current", 0)
+        inactive_split = stats.get("inactive_split_bytes.all.current", 0)
         
-        # Calculate fragmentation: wasted space / total reserved
+        # Robust fragmentation ratio: non-releasable split memory vs total reserved
         fragmentation = 0.0
         if reserved > 0:
-            fragmentation = (reserved - allocated) / reserved
+            fragmentation = inactive_split / reserved
             
         return allocated, reserved, fragmentation
     
@@ -146,7 +148,7 @@ class MemoryTracer:
     
     def _create_forward_hook(self, layer_name: str) -> Callable:
         """Create a forward hook for layer entry."""
-        def hook(module, input, output):
+        def hook(module, input):
             with self._lock:
                 self.layer_stack.append(layer_name)
                 self.current_layer = layer_name

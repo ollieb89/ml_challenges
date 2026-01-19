@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "shared-utils"
+version = "0.1.0"
+description = "Shared utilities for ai-ml-pipeline"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+    { name = "Ollie", email = "buitelaarolivier@gmail.com" },
+]
