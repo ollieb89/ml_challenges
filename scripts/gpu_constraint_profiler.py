@@ -697,8 +697,8 @@ Examples:
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("reports/system_constraints"),
-        help="Output directory for reports (default: reports/system_constraints/)"
+        default=Path("projects/gpu_optimizer/reports/system_constraints"),
+        help="Output directory for reports (default: projects/gpu_optimizer/reports/system_constraints/)"
     )
     parser.add_argument(
         "--no-save",

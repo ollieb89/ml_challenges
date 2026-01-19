@@ -100,8 +100,8 @@ def run_stress_test(
     model_path: Path,
     device_idx: int = 0,
     batch_sizes: list[int] | None = None,
-    report_path: Path = Path("reports/vram_stress.csv"),
-    plot_path: Path | None = Path("reports/vram_curve.png"),
+    report_path: Path = Path("projects/pose_analyzer/reports/vram_stress.csv"),
+    plot_path: Path | None = Path("projects/pose_analyzer/reports/vram_curve.png"),
 ) -> None:
     """Main driver for the VRAM stress test.
 

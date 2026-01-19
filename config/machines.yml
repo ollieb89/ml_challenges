@@ -1,8 +1,11 @@
+# Default machine profile to use when none is specified
+default: pc-3070ti
+
 machines:
   desktop-5070ti:
     name: "Main Dev Machine"
     gpu: "RTX 5070 Ti"
-    vram_gb: 12
+    vram_gb: 16
     cuda_sm: "90"
     primary: true
     use_for: ["development", "inference", "testing"]
@@ -18,8 +21,8 @@ machines:
     environment: cuda
     power_limit: 90  # TDP limit for laptop
     # SSH Configuration
-    ssh_host: "192.168.1.X"  # UPDATE THIS
-    ssh_user: "ollie"        # UPDATE THIS
+    ssh_host: "192.168.1.101"  # UPDATE THIS
+    ssh_user: "ob"        # UPDATE THIS
     remote_root: "~/ai-ml-pipeline"
 
   pc-3070ti:
@@ -71,6 +74,6 @@ machines:
       - "RDRND hardware RNG warning - may need BIOS/microcode update"
     
     # SSH Configuration
-    ssh_host: "192.168.1.211"
+    ssh_host: "192.168.1.102"
     ssh_user: "ollie"
     remote_root: "~/Tools/ai-ml-pipeline"
