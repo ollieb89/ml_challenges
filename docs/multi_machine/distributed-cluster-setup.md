@@ -97,7 +97,7 @@ chmod 700 ~/.ssh
 
 # Test from master
 exit
-ssh user@192.168.1.101 "echo Connection successful"
+ssh ob@192.168.1.101 "echo Connection successful"
 ```
 
 Repeat for both workers (192.168.1.101 and 192.168.1.102).
@@ -111,10 +111,10 @@ Make it easier to reference machines. On each:
 sudo hostnamectl set-hostname gpu-master
 
 # Laptop
-sudo hostnamectl set-hostname gpu-worker-1
+sudo hostnamectl set-hostname gpu1
 
 # Desktop 2
-sudo hostnamectl set-hostname gpu-worker-2
+sudo hostnamectl set-hostname gpu2
 
 # Add to /etc/hosts on all machines
 sudo nano /etc/hosts
@@ -123,13 +123,14 @@ sudo nano /etc/hosts
 Add:
 ```
 192.168.1.100  gpu-master
-192.168.1.101  gpu-worker-1
-192.168.1.102  gpu-worker-2
+192.168.1.101  gpu1
+192.168.1.102  gpu2
 ```
 
 Test:
 ```bash
-ping gpu-worker-1
+ping gpu1
+ping gpu2
 ```
 
 ---

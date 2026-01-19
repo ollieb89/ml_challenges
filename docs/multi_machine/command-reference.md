@@ -141,10 +141,10 @@ print(f'GPU: {torch.cuda.get_device_name(0)}')
 
 ```bash
 # Create all directories
-mkdir -p ~/ai-cluster/{scripts,data,checkpoints,logs,results,config}
+mkdir -p ~/Tools/ai-ml-pipeline/ai-cluster/{scripts,data,checkpoints,logs,results,config}
 
 # Verify structure
-tree ~/ai-cluster
+tree ~/Tools/ai-ml-pipeline/ai-cluster
 ```
 
 ### Copy Training Scripts
@@ -155,8 +155,8 @@ tree ~/ai-cluster
 # - train_single_test.py
 
 # Make executable
-chmod +x ~/ai-cluster/scripts/train_production.py
-chmod +x ~/ai-cluster/scripts/train_single_test.py
+    chmod +x ~/Tools/ai-ml-pipeline/ai-cluster/scripts/train_production.py
+    chmod +x ~/Tools/ai-ml-pipeline/ai-cluster/scripts/train_single_test.py
 ```
 
 ---
@@ -167,7 +167,7 @@ chmod +x ~/ai-cluster/scripts/train_single_test.py
 
 ```bash
 # On main desktop
-cd ~/ai-cluster/scripts
+cd ~/Tools/ai-ml-pipeline/ai-cluster/scripts
 python -c "
 import torch
 from unsloth import FastLanguageModel
@@ -202,7 +202,7 @@ nvidia-smi
 ### Master Node (192.168.1.100) - Terminal 1
 
 ```bash
-cd ~/ai-cluster/scripts
+cd ~/Tools/ai-ml-pipeline/ai-cluster/scripts
 torchrun \
     --nnodes=3 \
     --nproc_per_node=1 \
@@ -220,9 +220,9 @@ torchrun \
 ### Worker 1 (192.168.1.101) - Terminal 2
 
 ```bash
-ssh user@192.168.1.101
+ssh ob@192.168.1.101
 
-cd ~/ai-cluster/scripts
+cd ~/Tools/ai-ml-pipeline/ai-cluster/scripts
 torchrun \
     --nnodes=3 \
     --nproc_per_node=1 \
@@ -242,7 +242,7 @@ torchrun \
 ```bash
 ssh user@192.168.1.102
 
-cd ~/ai-cluster/scripts
+cd ~/Tools/ai-ml-pipeline/ai-cluster/scripts
 torchrun \
     --nnodes=3 \
     --nproc_per_node=1 \
@@ -278,7 +278,7 @@ nvidia-smi --query-gpu=index,name,memory.used,memory.total --format=csv
 
 ```bash
 # Start TensorBoard
-tensorboard --logdir ~/ai-cluster/logs/runs/
+tensorboard --logdir ~/Tools/ai-ml-pipeline/ai-cluster/logs/runs/
 
 # Access at http://localhost:6006
 # Open in browser: http://127.0.0.1:6006
@@ -288,10 +288,10 @@ tensorboard --logdir ~/ai-cluster/logs/runs/
 
 ```bash
 # View logs (rank 0 is main)
-tail -f ~/ai-cluster/logs/training_rank0_*.log
+tail -f ~/Tools/ai-ml-pipeline/ai-cluster/logs/training_rank0_*.log
 
 # Or all logs
-tail -f ~/ai-cluster/logs/training_rank*.log
+tail -f ~/Tools/ai-ml-pipeline/ai-cluster/logs/training_rank*.log
 
 # Search for errors
 grep ERROR ~/ai-cluster/logs/training_rank*.log
@@ -372,10 +372,10 @@ done
 
 ```bash
 # On each machine
-df -h ~/ai-cluster/
+df -h ~/Tools/ai-ml-pipeline/ai-cluster/
 
 # Remote check
-ssh user@192.168.1.101 "df -h ~/ai-cluster/"
+ssh ob@192.168.1.101 "df -h ~/Tools/ai-ml-pipeline/ai-cluster/"
 ```
 
 ### Monitor Network During Training
@@ -474,10 +474,10 @@ for i in range(5):
 
 ```bash
 # Show all checkpoints
-ls -lh ~/ai-cluster/checkpoints/
+ls -lh ~/Tools/ai-ml-pipeline/ai-cluster/checkpoints/
 
 # Show latest checkpoint
-ls -lht ~/ai-cluster/checkpoints/ | head -5
+ls -lht ~/Tools/ai-ml-pipeline/ai-cluster/checkpoints/ | head -5
 ```
 
 ### Load and Test Trained Model
@@ -503,7 +503,7 @@ print(tokenizer.decode(outputs[0]))
 
 ```bash
 # Copy checkpoint for deployment
-cp ~/ai-cluster/checkpoints/epoch_3_loss_0.4521.pt ~/my-trained-model.pt
+cp ~/Tools/ai-ml-pipeline/ai-cluster/checkpoints/epoch_3_loss_0.4521.pt ~/my-trained-model.pt
 
 # Export to HuggingFace format
 # See train_production.py for save_pretrained() usage
@@ -602,7 +602,7 @@ pip install torch torchvision torchaudio --index-url https://download.pytorch.or
 pip install transformers datasets accelerate peft unsloth[colab-new] tensorboard
 
 # 4. Create structure (on master)
-mkdir -p ~/ai-cluster/{scripts,data,checkpoints,logs,results,config}
+mkdir -p ~/Tools/ai-ml-pipeline/ai-cluster/{scripts,data,checkpoints,logs,results,config}
 
 # 5. Launch training (on each terminal with different node_rank)
 # See PHASE 6 above for full commands

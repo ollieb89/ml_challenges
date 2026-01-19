@@ -54,7 +54,6 @@ tensorrt-cu12 = ">=10.2,<10.3"
 tensorrt-cu12-bindings = ">=10.2,<10.3"
 tensorrt-cu12-libs = ">=10.2,<10.3"
 ultralytics = ">=8.4,<8.5"
-prometheus-client = ">=0.21,<0.25"
 nvidia-ml-py = ">=12.535,<13"
 onnx = ">=1.12,<2.0"
 onnxslim = ">=0.1.71,<0.2"
@@ -124,6 +123,7 @@ optimum-quanto = ">=0.2.7, <0.3"
 [feature.cuda.dependencies]
 gcc_linux-64 = "12.*"
 gxx_linux-64 = "12.*"
+git = ">=2.51.0,<3"
 
 # ============================================================================
 # Environments
