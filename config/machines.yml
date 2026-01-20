@@ -1,8 +1,11 @@
+# Default machine profile to use when none is specified
+default: pc-3070ti
+
 machines:
   desktop-5070ti:
     name: "Main Dev Machine"
     gpu: "RTX 5070 Ti"
-    vram_gb: 12
+    vram_gb: 16
     cuda_sm: "90"
     primary: true
     use_for: ["development", "inference", "testing"]
@@ -18,20 +21,59 @@ machines:
     environment: cuda
     power_limit: 90  # TDP limit for laptop
     # SSH Configuration
-    ssh_host: "192.168.1.X"  # UPDATE THIS
-    ssh_user: "ollie"        # UPDATE THIS
+    ssh_host: "192.168.1.101"  # UPDATE THIS
+    ssh_user: "ob"        # UPDATE THIS
     remote_root: "~/ai-ml-pipeline"
 
   pc-3070ti:
-    name: "Secondary PC"
+    name: "Secondary PC (ml-server)"
     gpu: "RTX 3070 Ti"
-    vram_gb: 8
-    cuda_sm: "86"
+    vram_gb: 7.66  # Actual usable VRAM (profiled 2026-01-19)
+    cuda_version: "12.8"
+    cuda_sm: "86"  # Ampere architecture
     primary: false
-    use_for: ["backup", "inference", "testing"]
+    use_for: ["backup", "inference", "testing", "pose_estimation"]
     environment: cuda
-    batch_size_limit: 32  # More constrained
+    
+    # GPU Profiler Results (2026-01-19)
+    constraints:
+      # Vision Models - Excellent Performance
+      resnet50:
+        fp32_max_batch: 256
+        fp32_vram_mb: 2802
+        fp16_max_batch: 256
+        fp16_vram_mb: 1505
+        recommended_precision: fp16
+      vit_base:
+        fp32_max_batch: 256
+        fp32_vram_mb: 2411
+        fp16_max_batch: 256
+        fp16_vram_mb: 1221
+        recommended_precision: fp16
+      yolo_pose_v11n:
+        fp16_max_batch: 128
+        fp16_vram_mb: 3019
+        inference_batch: 32  # Recommended for real-time
+        
+      # LLM Constraints - Severely Limited
+      llama_7b:
+        fp16_supported: false  # Requires ~16GB
+        int8_supported: false  # Requires ~8.5GB
+        int4_max_batch: 8      # Marginal, unstable
+        recommended: false
+        
+    # General Recommendations
+    recommended_precision: fp16
+    llm_7b_capable: false
+    vision_optimal: true
+    optimal_inference_batch: 32
+    max_training_batch: 128
+    
+    # Known Issues
+    known_issues:
+      - "RDRND hardware RNG warning - may need BIOS/microcode update"
+    
     # SSH Configuration
-    ssh_host: "192.168.1.211"  # UPDATE THIS
-    ssh_user: "ollie"        # UPDATE THIS
+    ssh_host: "192.168.1.102"
+    ssh_user: "ollie"
     remote_root: "~/Tools/ai-ml-pipeline"

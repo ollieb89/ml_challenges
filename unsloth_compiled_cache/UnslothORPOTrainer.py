@@ -1,7 +1,7 @@
 """
 2026.1.3
 2026.1.3
-4.57.3
+4.57.6
 0.24.0
 __UNSLOTH_VERSIONING__
 """
@@ -390,6 +390,7 @@ class UnslothORPOConfig(ORPOConfig):
         num_train_epochs = 3.0,
         max_steps = -1,
         lr_scheduler_type = 'linear',
+        lr_scheduler_kwargs = None,
         warmup_ratio = 0.1,
         warmup_steps = 0,
         log_level = 'passive',
@@ -554,6 +555,7 @@ class UnslothORPOConfig(ORPOConfig):
             num_train_epochs = num_train_epochs,
             max_steps = max_steps,
             lr_scheduler_type = lr_scheduler_type,
+            lr_scheduler_kwargs = lr_scheduler_kwargs,
             warmup_ratio = warmup_ratio,
             warmup_steps = warmup_steps,
             log_level = log_level,
