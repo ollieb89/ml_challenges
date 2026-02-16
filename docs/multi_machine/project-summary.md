@@ -99,7 +99,7 @@ print('✓ Ready for training')
 
 **Terminal 1 - Main Desktop (192.168.1.100):**
 ```bash
-cd ~/ai-cluster/scripts
+cd ~//home/ollie/Development/Projects/ai-ml-pipeline/ai-cluster/scripts
 torchrun \
     --nnodes=3 --nproc_per_node=1 \
     --rdzv_id=100 --rdzv_backend=c10d \
@@ -110,8 +110,8 @@ torchrun \
 
 **Terminal 2 - SSH to Laptop (192.168.1.101):**
 ```bash
-ssh user@192.168.1.101
-cd ~/ai-cluster/scripts
+ssh ob@192.168.1.101
+cd ~/Tools/ai-ml-pipeline/ai-cluster/scripts
 torchrun \
     --nnodes=3 --nproc_per_node=1 \
     --rdzv_id=100 --rdzv_backend=c10d \
@@ -122,8 +122,8 @@ torchrun \
 
 **Terminal 3 - SSH to Desktop 2 (192.168.1.102):**
 ```bash
-ssh user@192.168.1.102
-cd ~/ai-cluster/scripts
+ssh ollie@192.168.1.102
+cd ~/Tools/ai-ml-pipeline/ai-cluster/scripts
 torchrun \
     --nnodes=3 --nproc_per_node=1 \
     --rdzv_id=100 --rdzv_backend=c10d \

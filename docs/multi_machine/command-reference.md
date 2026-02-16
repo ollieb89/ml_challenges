@@ -331,7 +331,7 @@ telnet 192.168.1.100 29500
 ping -c 10 192.168.1.101
 
 # SSH connectivity
-ssh -v user@192.168.1.101
+ssh -v ob@192.168.1.101
 ```
 
 ### Debug Distributed
@@ -355,7 +355,7 @@ python -c "import torch; print(torch.cuda.nccl.version())"
 # Run from main desktop
 for i in 100 101 102; do
   echo "=== 192.168.1.$i ==="
-  ssh user@192.168.1.$i "nvidia-smi | head -5"
+  ssh ollie@192.168.1.$i "nvidia-smi | head -5"
 done
 ```
 
@@ -364,7 +364,7 @@ done
 ```bash
 for i in 100 101 102; do
   echo -n "192.168.1.$i: "
-  ssh user@192.168.1.$i "nvidia-smi --query-gpu=name --format=csv,noheader"
+  ssh ollie@192.168.1.$i "nvidia-smi --query-gpu=name --format=csv,noheader"
 done
 ```
 

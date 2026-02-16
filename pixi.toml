@@ -100,7 +100,7 @@ torchvision = { version = "==0.22.1", index = "https://download.pytorch.org/whl/
 torchaudio = { version = "==2.7.1", index = "https://download.pytorch.org/whl/cpu" }
 
 # ============================================================================
-# CUDA Feature - CUDA 12.4 PyTorch wheels
+# CUDA Feature - CUDA 12.8 PyTorch wheels
 # ============================================================================
 
 [feature.cuda]
